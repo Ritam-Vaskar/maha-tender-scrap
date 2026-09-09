@@ -28,6 +28,7 @@ export function TenderCard({ tender }) {
           <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="font-semibold text-primary">{tender.organisationShortName || tender.organisationName || "Organisation not specified"}</span>
             {tender.isSample ? <SampleTag /> : null}
+            {tender.isPreview ? <Badge variant="outline" title="Repeated source row for UI scale testing">UI preview {tender.previewCopy}</Badge> : null}
           </div>
           <Link href={destination} className="line-clamp-2 font-display text-lg font-bold leading-snug hover:text-primary">
             {tender.title}

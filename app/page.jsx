@@ -9,11 +9,15 @@ import { listDistricts, listOrganisations } from "@/lib/db/reference"
 import { fetchPublicHomePage } from "@/lib/ingestion/sourceClient"
 import { parseListing } from "@/lib/ingestion/tenderParser"
 
+export const dynamic = "force-dynamic"
+
 async function getDashboard() {
   if (process.env.SOURCE_MODE === "direct" && process.env.SOURCE_ENABLED === "true") {
     try {
       const tenders = parseListing(await fetchPublicHomePage()).map((item, index) => ({ ...item, id: `source-${index}-${item.sourceId}`, isSourceDirect: true }))
-      return { kpis: { newTenders: tenders.length, closingSoon: null, highValue: null, totalTenders: tenders.length }, tenders: tenders.slice(0, 4), districts: [], organisations: [], configured: true, direct: true }
+      const now = Date.now()
+      const closingSoon = tenders.filter((tender) => { const deadline = new Date(tender.submissionEndAt || "").getTime(); return Number.isFinite(deadline) && deadline >= now && deadline <= now + 7 * 86400000 }).length
+      return { kpis: { newTenders: tenders.length, closingSoon, highValue: null, totalTenders: tenders.length }, tenders: tenders.slice(0, 4), districts: [], organisations: [], configured: true, direct: true }
     } catch (error) { console.error("Direct dashboard source unavailable", error) }
   }
   if (!process.env.DATABASE_URL) return { kpis: null, tenders: [], districts: [], organisations: [], configured: false }

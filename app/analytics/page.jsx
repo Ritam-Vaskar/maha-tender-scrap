@@ -1,0 +1,12 @@
+import { SiteHeader } from "@/components/layout/site-header"
+import { Card } from "@/components/ui-kit"
+import { EmptyState } from "@/components/states"
+import { getAnalytics } from "@/lib/db/analytics"
+
+export const dynamic = "force-dynamic"
+
+export default async function AnalyticsPage() {
+  let data = null
+  if (process.env.DATABASE_URL) { try { data = await getAnalytics() } catch (error) { console.error("Analytics unavailable", error) } }
+  return <><SiteHeader /><main className="mx-auto max-w-7xl px-4 py-8 sm:px-6"><p className="text-sm font-semibold text-primary">Evidence from your index</p><h1 className="mt-1 text-3xl font-bold">Analytics</h1><p className="mt-2 text-sm text-muted-foreground">Aggregates are calculated from indexed tender records only.</p>{data ? <section className="mt-8 grid gap-4 sm:grid-cols-3"><Card className="p-5"><p className="text-sm text-muted-foreground">Indexed tenders</p><p className="mt-2 text-3xl font-bold">{data.totals.totalTenders}</p></Card><Card className="p-5"><p className="text-sm text-muted-foreground">Total estimated value</p><p className="mt-2 text-3xl font-bold">₹{Math.round(data.totals.totalValue).toLocaleString("en-IN")}</p></Card><Card className="p-5"><p className="text-sm text-muted-foreground">Average tender value</p><p className="mt-2 text-3xl font-bold">₹{Math.round(data.totals.avgValue).toLocaleString("en-IN")}</p></Card>{[["Districts", data.byDistrict], ["Organisations", data.byOrganisation], ["Categories", data.byCategory], ["Value distribution", data.valueDistribution], ["Deadline distribution", data.closingDistribution]].map(([title, rows]) => <Card key={title} className="p-6 sm:col-span-1"><h2 className="font-bold">{title}</h2><div className="mt-4 space-y-3">{rows.length ? rows.slice(0, 8).map((row) => <div key={row.name} className="flex items-center justify-between gap-4 text-sm"><span className="truncate text-muted-foreground">{row.name}</span><span className="font-semibold">{row.count}</span></div>) : <p className="text-sm text-muted-foreground">No data yet.</p>}</div></Card>)}</section> : <div className="mt-8"><EmptyState title="Analytics will appear after your first sync" description="Connect PostgreSQL and ingest official records to calculate district, organisation, value and deadline trends." /></div>}</main></>
+}

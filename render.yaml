@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: mahatender
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: mahatender-db
+          property: connectionString
+      - key: DB_SSL
+        value: "true"
+      - key: SOURCE_ENABLED
+        value: "false"
+      - key: ADMIN_SYNC_TOKEN
+        generateValue: true
+
+databases:
+  - name: mahatender-db
+    databaseName: mahatender
+    user: mahatender
